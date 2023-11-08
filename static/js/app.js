@@ -72,6 +72,9 @@ function refreshTasks() {
 
             saveBtn.textContent = "S";
             saveBtn.addEventListener("click", () => {
+                if (!nameInput.value) {
+                    return;
+                }
                 removeTask(task.name);
                 createTask({ name: nameInput.value, subtasks: editSubtasks });
                 refreshTasks();

@@ -72,14 +72,17 @@ export function getAllTasks() {
  * @return {Task[]}
  */
 export function searchTasks(input) {
-    const search = Object.keys(localStorage).filter(isTask).map(name => removePrefix(name).split(" "));
+    const tasks = getAllTasks();
+    const search = tasks
+        .map(task =>
+            [task.name.split(" "), task.subtasks.map(subtask => subtask.name.split(" "))].flat(2));
 
     /** @type Task[] */
     const result = [];
 
     const inputWords = input.trim().split(" ");
 
-    search.forEach(sentence => {
+    search.forEach((sentence, i) => {
         let matches = 0;
         for (const word of sentence) {
             for (const inputWord of inputWords) {
@@ -93,7 +96,7 @@ export function searchTasks(input) {
             return;
         }
 
-        result.push(getTask(sentence.join(" ")));
+        result.push(tasks[i]);
     });
 
     return result;

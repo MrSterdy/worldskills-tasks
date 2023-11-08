@@ -1,12 +1,15 @@
-import {updateTask, getAllTasks, removeTask} from "./taskService.js";
+import {updateTask, getAllTasks, removeTask, searchTasks} from "./taskService.js";
 
 refreshTasks();
 
-function refreshTasks() {
+/**
+ * @param {string?} search
+ */
+function refreshTasks(search = undefined) {
     const taskList = document.getElementById("tasks");
     taskList.replaceChildren();
 
-    const tasks = getAllTasks();
+    const tasks = search ? searchTasks(search) : getAllTasks();
 
     for (const task of tasks) {
         const li = document.createElement("li");
@@ -142,6 +145,10 @@ function refreshSubtasks() {
         subtaskList.append(li);
     }
 }
+
+document.getElementById("search").addEventListener("input", function() {
+    refreshTasks(this.value);
+});
 
 document.getElementById("new-subtask-button").addEventListener("click", () => {
     subtasks.push({ name: "Новая подзадача", finished: false });

@@ -41,6 +41,30 @@ export function createTask(task) {
 
 /**
  * @param {string} taskName
+ */
+export function removeTask(taskName) {
+    localStorage.removeItem(addPrefix(taskName));
+}
+
+/**
+ * @param {string} taskName
+ * @param {string} subtaskName
+ */
+export function removeSubtaskFrom(taskName, subtaskName) {
+    const task = getTask(taskName);
+    if (!task) {
+        return;
+    }
+
+    const index = task.subtasks.findIndex(subtask => subtask.name.toLowerCase() === subtaskName.toLowerCase());
+    if (index !== -1) {
+        task.subtasks.splice(index, 1);
+        createTask(task);
+    }
+}
+
+/**
+ * @param {string} taskName
  *
  * @return {Task | null}
  */

@@ -13,7 +13,7 @@ function refreshTasks() {
         const header = document.createElement("h2");
         const editBtn = document.createElement("button");
 
-        header.textContent = task.name;
+        header.textContent = `${task.name} [${task.finished ? "Выполнено" : "Активно"}]`;
 
         editBtn.textContent = "E";
         editBtn.addEventListener("click", () => {
@@ -25,6 +25,8 @@ function refreshTasks() {
             const deleteBtn = document.createElement("button");
             const cancelBtn = document.createElement("button");
             const saveBtn = document.createElement("button");
+            const finishLabel = document.createElement("label")
+            const finishCheckbox = document.createElement("input");
 
             nameInput.value = task.name;
 
@@ -38,6 +40,7 @@ function refreshTasks() {
                     const subtaskLi = document.createElement("li");
                     const subtaskInput = document.createElement("input");
                     const removeSubtaskBtn = document.createElement("button");
+                    const finishSubtaskBtn = document.createElement("button");
 
                     subtaskInput.value = subtask.name;
                     subtaskInput.addEventListener("input", () => subtask.name = subtaskInput.value);
@@ -48,16 +51,29 @@ function refreshTasks() {
                         refreshEditSubtasks();
                     });
 
-                    subtaskLi.append(subtaskInput, removeSubtaskBtn);
+                    finishSubtaskBtn.textContent = subtask.finished ? "NF" : "F";
+                    finishSubtaskBtn.addEventListener("click", () => {
+                        subtask.finished = !subtask.finished;
+                        refreshEditSubtasks();
+                    });
+
+                    subtaskLi.append(subtaskInput, removeSubtaskBtn, finishSubtaskBtn);
                     subtasksUl.append(subtaskLi);
                 }
             };
 
             refreshEditSubtasks();
 
+            finishLabel.textContent = "Завершить?";
+
+            finishCheckbox.type = "checkbox";
+            finishCheckbox.checked = task.finished;
+
+            finishLabel.append(finishCheckbox);
+
             newSubtaskBtn.textContent = "N";
             newSubtaskBtn.addEventListener("click", () => {
-                editSubtasks.push({ name: "Новая подзадача" });
+                editSubtasks.push({ name: "Новая подзадача", finished: false });
                 refreshEditSubtasks();
             });
 
@@ -72,15 +88,15 @@ function refreshTasks() {
 
             saveBtn.textContent = "S";
             saveBtn.addEventListener("click", () => {
-                if (!nameInput.value) {
+                if (!nameInput.value || (finishCheckbox.checked && editSubtasks.some(subtask => !subtask.finished))) {
                     return;
                 }
                 removeTask(task.name);
-                updateTask({ name: nameInput.value, subtasks: editSubtasks });
+                updateTask({ name: nameInput.value, subtasks: editSubtasks, finished: finishCheckbox.checked });
                 refreshTasks();
             });
 
-            li.append(nameInput, subtasksUl, newSubtaskBtn, deleteBtn, cancelBtn, saveBtn);
+            li.append(nameInput, subtasksUl, newSubtaskBtn, finishLabel, deleteBtn, cancelBtn, saveBtn);
         });
 
         li.append(header, editBtn);
@@ -90,7 +106,7 @@ function refreshTasks() {
 
             for (const subtask of task.subtasks) {
                 const subtaskLi = document.createElement("li");
-                subtaskLi.textContent = subtask.name;
+                subtaskLi.textContent = `${subtask.name} [${subtask.finished ? "Выполнено" : "Активно"}]`;
                 ul.append(subtaskLi);
             }
 
@@ -128,7 +144,7 @@ function refreshSubtasks() {
 }
 
 document.getElementById("new-subtask-button").addEventListener("click", () => {
-    subtasks.push({ name: "Новая подзадача" });
+    subtasks.push({ name: "Новая подзадача", finished: false });
     refreshSubtasks();
 });
 
@@ -139,7 +155,7 @@ document.getElementById("new-task-submit").addEventListener("click", () => {
         return;
     }
 
-    updateTask({ name: input.value, subtasks });
+    updateTask({ name: input.value, subtasks, finished: false });
 
     subtasks = [];
     input.value = "";

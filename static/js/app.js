@@ -1,4 +1,4 @@
-import {createTask, getAllTasks, removeSubtaskFrom, removeTask} from "./taskService.js";
+import {updateTask, getAllTasks, removeTask} from "./taskService.js";
 
 refreshTasks();
 
@@ -76,7 +76,7 @@ function refreshTasks() {
                     return;
                 }
                 removeTask(task.name);
-                createTask({ name: nameInput.value, subtasks: editSubtasks });
+                updateTask({ name: nameInput.value, subtasks: editSubtasks });
                 refreshTasks();
             });
 
@@ -139,7 +139,7 @@ document.getElementById("new-task-submit").addEventListener("click", () => {
         return;
     }
 
-    createTask({ name: input.value, subtasks });
+    updateTask({ name: input.value, subtasks });
 
     subtasks = [];
     input.value = "";

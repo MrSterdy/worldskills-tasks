@@ -1,13 +1,15 @@
 /**
  * @typedef {{
- *     name: string
+ *     name: string,
+ *     finished: boolean
  * }} Subtask
  */
 
 /**
  * @typedef {{
  *     name: string,
- *     subtasks: Subtask[]
+ *     subtasks: Subtask[],
+ *     finished: boolean
  * }} Task
  */
 
@@ -35,7 +37,7 @@ function removePrefix(taskName) {
 /**
  * @param {Task} task
  */
-export function createTask(task) {
+export function updateTask(task) {
     localStorage.setItem(addPrefix(task.name), JSON.stringify(task));
 }
 
@@ -44,23 +46,6 @@ export function createTask(task) {
  */
 export function removeTask(taskName) {
     localStorage.removeItem(addPrefix(taskName));
-}
-
-/**
- * @param {string} taskName
- * @param {string} subtaskName
- */
-export function removeSubtaskFrom(taskName, subtaskName) {
-    const task = getTask(taskName);
-    if (!task) {
-        return;
-    }
-
-    const index = task.subtasks.findIndex(subtask => subtask.name.toLowerCase() === subtaskName.toLowerCase());
-    if (index !== -1) {
-        task.subtasks.splice(index, 1);
-        createTask(task);
-    }
 }
 
 /**

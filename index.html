@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Заметки</title>
+
+    <link rel="stylesheet" href="static/css/app.css">
+</head>
+<body>
+<main>
+    <h1>Заметки</h1>
+
+    <div>
+        <label>
+            Создать заметку
+            <input type="text" id="new-task-input">
+        </label>
+
+        <ul id="subtasks"></ul>
+
+        <button id="new-subtask-button">Добавить подзадачу</button>
+        <button id="new-task-submit">Создать</button>
+    </div>
+    <ul id="tasks"></ul>
+</main>
+<script src="static/js/app.js" type="module"></script>
+</body>
+</html>

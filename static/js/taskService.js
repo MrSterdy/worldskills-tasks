@@ -64,7 +64,11 @@ export function getTask(taskName) {
  * @return {Task[]}
  */
 export function getAllTasks() {
-    return Object.keys(localStorage).filter(isTask).map(name => getTask(removePrefix(name)));
+    return Object
+        .keys(localStorage)
+        .filter(isTask)
+        .map(name => getTask(removePrefix(name)))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
 /**

@@ -68,7 +68,13 @@ export function getAllTasks() {
         .keys(localStorage)
         .filter(isTask)
         .map(name => getTask(removePrefix(name)))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        .sort((a, b) => {
+            // Нормализовать до [-1; 1]
+            const date = Math.min(Math.max(new Date(b.date).getTime() - new Date(a.date).getTime(), -1), 1);
+
+            // Отсортировать так, что незавершенные были сверху, а завершенные снизу
+            return (a.finished || -1) + date - (b.finished || -1);
+        })
 }
 
 /**

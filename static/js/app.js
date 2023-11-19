@@ -32,48 +32,49 @@ function refreshTasks(search = undefined) {
 
     for (const task of tasks) {
         const li = document.createElement("li");
-        const header = document.createElement("h2");
+        const header = document.createElement("h3");
         const editBtn = document.createElement("button");
 
-        let headerText = task.name;
-        headerText += ` [${task.finished ? "Выполнено" : "Активно"}]`;
         const taskDate = new Date(task.date);
-        if (task.finished) {
-            headerText += ` [Выполнено]`;
-        } else if (taskDate.getTime() < now.getTime()) {
-            headerText += ` [Просрочено]`;
-        } else if (
-            now.getFullYear() === taskDate.getFullYear() &&
-            now.getMonth() === taskDate.getMonth() &&
-            now.getDate() === taskDate.getDate()
-        ) {
-            headerText += ` [Сегодня до ${taskDate.toLocaleTimeString()}]`;
-        } else {
-            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-            const overmorrow = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 1);
-            if (
-                tomorrow.getFullYear() === taskDate.getFullYear() &&
-                tomorrow.getMonth() === taskDate.getMonth() &&
-                tomorrow.getDate() === taskDate.getDate()
-            ) {
-                headerText += ` [Завтра]`;
-            } else if (
-                overmorrow.getFullYear() === taskDate.getFullYear() &&
-                overmorrow.getMonth() === taskDate.getMonth() &&
-                overmorrow.getDate() === taskDate.getDate()
-            ) {
-                headerText += ` [Послезавтра]`;
-            } else {
-                const timeDiff = taskDate.getTime() - now.getTime();
-                const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
 
-                headerText += ` [Через ${dayDiff} дней]`;
+        header.textContent = task.name;
+
+        if (task.finished) {
+            li.classList.add("finished");
+        } else if (taskDate.getTime() < now.getTime()) {
+            li.classList.add("expired");
+        } else {
+            if (
+                now.getFullYear() === taskDate.getFullYear() &&
+                now.getMonth() === taskDate.getMonth() &&
+                now.getDate() === taskDate.getDate()
+            ) {
+                header.textContent += ` [Сегодня до ${taskDate.toLocaleTimeString()}]`;
+            } else {
+                const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                const overmorrow = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 1);
+                if (
+                    tomorrow.getFullYear() === taskDate.getFullYear() &&
+                    tomorrow.getMonth() === taskDate.getMonth() &&
+                    tomorrow.getDate() === taskDate.getDate()
+                ) {
+                    header.textContent += " [Завтра]";
+                } else if (
+                    overmorrow.getFullYear() === taskDate.getFullYear() &&
+                    overmorrow.getMonth() === taskDate.getMonth() &&
+                    overmorrow.getDate() === taskDate.getDate()
+                ) {
+                    header.textContent += " [Послезавтра]";
+                } else {
+                    const timeDiff = taskDate.getTime() - now.getTime();
+                    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+                    header.textContent += ` [Через ${dayDiff} дней]`;
+                }
             }
         }
 
-        header.textContent = headerText;
-
-        editBtn.textContent = "E";
+        editBtn.textContent = "Изменить";
         editBtn.addEventListener("click", () => {
             li.replaceChildren();
 
@@ -83,9 +84,7 @@ function refreshTasks(search = undefined) {
             const deleteBtn = document.createElement("button");
             const cancelBtn = document.createElement("button");
             const saveBtn = document.createElement("button");
-
-            const finishLabel = document.createElement("label")
-            const finishCheckbox = document.createElement("input");
+            const finishBtn = document.createElement("button")
 
             const dateLabel = document.createElement("label");
             const dateInput = document.createElement("input");
@@ -94,6 +93,8 @@ function refreshTasks(search = undefined) {
 
             /** @type Subtask[] */
             const editSubtasks = task.subtasks.map(subtask => ({ ...subtask }));
+
+            subtasksUl.classList.add("task-subtasks");
 
             const refreshEditSubtasks = () => {
                 subtasksUl.replaceChildren();
@@ -107,13 +108,15 @@ function refreshTasks(search = undefined) {
                     subtaskInput.value = subtask.name;
                     subtaskInput.addEventListener("input", () => subtask.name = subtaskInput.value);
 
-                    removeSubtaskBtn.textContent = "X";
+                    removeSubtaskBtn.textContent = "Удалить подзадачу";
                     removeSubtaskBtn.addEventListener("click", () => {
                         editSubtasks.splice(subtaskI, 1);
                         refreshEditSubtasks();
                     });
 
-                    finishSubtaskBtn.textContent = subtask.finished ? "NF" : "F";
+                    finishSubtaskBtn.textContent = subtask.finished
+                        ? "Пометить подзадачу незавершенной"
+                        : "Пометить подзадачу завершенной";
                     finishSubtaskBtn.addEventListener("click", () => {
                         subtask.finished = !subtask.finished;
                         refreshEditSubtasks();
@@ -126,14 +129,9 @@ function refreshTasks(search = undefined) {
 
             refreshEditSubtasks();
 
-            finishLabel.textContent = "Завершить?";
+            dateLabel.classList.add("task-date-label");
 
-            finishCheckbox.type = "checkbox";
-            finishCheckbox.checked = task.finished;
-
-            finishLabel.append(finishCheckbox);
-
-            dateLabel.textContent = "До"
+            dateLabel.textContent = "До";
 
             dateInput.value = task.date;
             dateInput.type = "datetime-local";
@@ -141,35 +139,41 @@ function refreshTasks(search = undefined) {
 
             dateLabel.append(dateInput);
 
-            newSubtaskBtn.textContent = "N";
+            newSubtaskBtn.textContent = "Добавить подзадачу";
             newSubtaskBtn.addEventListener("click", () => {
                 editSubtasks.push({ name: "Новая подзадача", finished: false });
                 refreshEditSubtasks();
             });
 
-            deleteBtn.textContent = "X";
+            deleteBtn.textContent = "Удалить подзадачу";
             deleteBtn.addEventListener("click", () => {
                 removeTask(task.name);
                 refreshTasks();
             });
 
-            cancelBtn.textContent = "C";
+            finishBtn.textContent = task.finished ? "Пометить задачу незавершенной" : "Пометить задачу завершенной";
+            finishBtn.addEventListener("click", () => {
+                task.finished = !task.finished;
+                finishBtn.textContent = task.finished ? "Пометить задачу незавершенной" : "Пометить задачу завершенной";
+            });
+
+            cancelBtn.textContent = "Отмена";
             cancelBtn.addEventListener("click", () => refreshTasks());
 
-            saveBtn.textContent = "S";
+            saveBtn.textContent = "Сохранить";
             saveBtn.addEventListener("click", () => {
-                if (!nameInput.value || (finishCheckbox.checked && editSubtasks.some(subtask => !subtask.finished))) {
+                if (!nameInput.value || (task.finished && editSubtasks.some(subtask => !subtask.finished))) {
                     return;
                 }
                 removeTask(task.name);
-                updateTask({ name: nameInput.value, date: dateInput.value, subtasks: editSubtasks, finished: finishCheckbox.checked });
+                updateTask({ name: nameInput.value, date: dateInput.value, subtasks: editSubtasks, finished: task.finished });
                 refreshTasks();
             });
 
-            li.append(nameInput, subtasksUl, newSubtaskBtn, finishLabel, dateLabel, deleteBtn, cancelBtn, saveBtn);
+            li.append(nameInput, subtasksUl, newSubtaskBtn, dateLabel, finishBtn, deleteBtn, cancelBtn, saveBtn);
         });
 
-        li.append(header, editBtn);
+        li.append(header);
 
         if (task.subtasks.length) {
             const ul = document.createElement("ul");
@@ -182,6 +186,8 @@ function refreshTasks(search = undefined) {
 
             li.append(ul);
         }
+
+        li.append(editBtn);
 
         taskList.append(li);
     }
@@ -197,9 +203,10 @@ function refreshSubtasks() {
         const deleteBtn = document.createElement("button");
 
         input.value = subtask.name;
+        input.required = true;
         input.addEventListener("input", () => subtask.name = input.value);
 
-        deleteBtn.textContent = "X";
+        deleteBtn.textContent = "Удалить";
         deleteBtn.addEventListener("click", () => {
             subtasks.splice(subtaskI, 1);
             refreshSubtasks();

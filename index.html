@@ -11,27 +11,27 @@
 </head>
 <body>
 <main>
-    <h1>Заметки</h1>
+    <h1 id="title">Заметки</h1>
 
-    <div>
-        <label>
-            Создать заметку
-            <input type="text" id="new-task-input">
+    <div id="note-panel">
+        <label id="search-label">
+            <input type="text" id="search" placeholder="Название">
+        </label>
+
+        <form id="new-task-wrapper">
             <label>
-                До
+                <input type="text" id="new-task-input" placeholder="Название" required>
+            </label>
+
+            <label>
                 <input type="datetime-local" id="new-task-date">
             </label>
-        </label>
 
-        <ul id="subtasks"></ul>
+            <ul id="subtasks"></ul>
 
-        <label>
-            Поиск
-            <input type="text" id="search">
-        </label>
-
-        <button id="new-subtask-button">Добавить подзадачу</button>
-        <button id="new-task-submit">Создать</button>
+            <button id="new-subtask-button">Добавить подзадачу</button>
+            <button id="new-task-submit">Сохранить</button>
+        </form>
     </div>
     <ul id="tasks"></ul>
 </main>

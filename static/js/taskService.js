@@ -9,6 +9,7 @@
  * @typedef {{
  *     name: string,
  *     subtasks: Subtask[],
+ *     date: string,
  *     finished: boolean
  * }} Task
  */
@@ -75,7 +76,11 @@ export function searchTasks(input) {
     const tasks = getAllTasks();
     const search = tasks
         .map(task =>
-            [task.name.split(" "), task.subtasks.map(subtask => subtask.name.split(" "))].flat(2));
+            [
+                task.name.split(" "),
+                task.subtasks.map(subtask => subtask.name.split(" ")),
+                task.date.split("T")
+            ].flat(2));
 
     /** @type Task[] */
     const result = [];

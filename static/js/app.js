@@ -1,11 +1,28 @@
 import {updateTask, getAllTasks, removeTask, searchTasks} from "./taskService.js";
 
+/** @type HTMLInputElement */
+const newNameInput = document.getElementById("new-task-input");
+
+/** @type HTMLInputElement */
+const newDateInput = document.getElementById("new-task-date");
+
+/** @type Subtask[] */
+let subtasks = [];
+
 refreshTasks();
 
 /**
  * @param {string?} search
  */
 function refreshTasks(search = undefined) {
+    const now = new Date().toLocaleString("sv").replace(" ", "T");
+    newDateInput.min = now;
+    newDateInput.value = now;
+
+    newNameInput.value = "";
+
+    subtasks = [];
+
     const taskList = document.getElementById("tasks");
     taskList.replaceChildren();
 
@@ -16,7 +33,15 @@ function refreshTasks(search = undefined) {
         const header = document.createElement("h2");
         const editBtn = document.createElement("button");
 
-        header.textContent = `${task.name} [${task.finished ? "Выполнено" : "Активно"}]`;
+        let headerText = task.name;
+        headerText += ` [${task.finished ? "Выполнено" : "Активно"}]`;
+        const taskDate = new Date(task.date);
+        if (!task.finished && taskDate.getTime() < new Date().getTime()) {
+            headerText += ` [Истечено]`;
+        }
+        headerText += ` [До ${taskDate.toLocaleString()}]`;
+
+        header.textContent = headerText;
 
         editBtn.textContent = "E";
         editBtn.addEventListener("click", () => {
@@ -28,8 +53,12 @@ function refreshTasks(search = undefined) {
             const deleteBtn = document.createElement("button");
             const cancelBtn = document.createElement("button");
             const saveBtn = document.createElement("button");
+
             const finishLabel = document.createElement("label")
             const finishCheckbox = document.createElement("input");
+
+            const dateLabel = document.createElement("label");
+            const dateInput = document.createElement("input");
 
             nameInput.value = task.name;
 
@@ -74,6 +103,14 @@ function refreshTasks(search = undefined) {
 
             finishLabel.append(finishCheckbox);
 
+            dateLabel.textContent = "До"
+
+            dateInput.value = task.date;
+            dateInput.type = "datetime-local";
+            dateInput.min = newDateInput.min;
+
+            dateLabel.append(dateInput);
+
             newSubtaskBtn.textContent = "N";
             newSubtaskBtn.addEventListener("click", () => {
                 editSubtasks.push({ name: "Новая подзадача", finished: false });
@@ -95,11 +132,11 @@ function refreshTasks(search = undefined) {
                     return;
                 }
                 removeTask(task.name);
-                updateTask({ name: nameInput.value, subtasks: editSubtasks, finished: finishCheckbox.checked });
+                updateTask({ name: nameInput.value, date: dateInput.value, subtasks: editSubtasks, finished: finishCheckbox.checked });
                 refreshTasks();
             });
 
-            li.append(nameInput, subtasksUl, newSubtaskBtn, finishLabel, deleteBtn, cancelBtn, saveBtn);
+            li.append(nameInput, subtasksUl, newSubtaskBtn, finishLabel, dateLabel, deleteBtn, cancelBtn, saveBtn);
         });
 
         li.append(header, editBtn);
@@ -119,9 +156,6 @@ function refreshTasks(search = undefined) {
         taskList.append(li);
     }
 }
-
-/** @type Subtask[] */
-let subtasks = [];
 
 function refreshSubtasks() {
     const subtaskList = document.getElementById("subtasks");
@@ -156,16 +190,11 @@ document.getElementById("new-subtask-button").addEventListener("click", () => {
 });
 
 document.getElementById("new-task-submit").addEventListener("click", () => {
-    /** @type HTMLInputElement */
-    const input = document.getElementById("new-task-input");
-    if (!input.value) {
+    if (!newNameInput.value) {
         return;
     }
 
-    updateTask({ name: input.value, subtasks, finished: false });
-
-    subtasks = [];
-    input.value = "";
+    updateTask({ name: newNameInput.value, subtasks, date: newDateInput.value, finished: false });
 
     refreshSubtasks();
     refreshTasks();

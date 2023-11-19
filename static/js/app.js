@@ -15,9 +15,11 @@ refreshTasks();
  * @param {string?} search
  */
 function refreshTasks(search = undefined) {
-    const now = new Date().toLocaleString("sv").replace(" ", "T");
-    newDateInput.min = now;
-    newDateInput.value = now;
+    const now = new Date();
+
+    const nowValue = now.toLocaleString("sv").replace(" ", "T");
+    newDateInput.min = nowValue;
+    newDateInput.value = nowValue;
 
     newNameInput.value = "";
 
@@ -36,10 +38,38 @@ function refreshTasks(search = undefined) {
         let headerText = task.name;
         headerText += ` [${task.finished ? "Выполнено" : "Активно"}]`;
         const taskDate = new Date(task.date);
-        if (!task.finished && taskDate.getTime() < new Date().getTime()) {
-            headerText += ` [Истечено]`;
+        if (task.finished) {
+            headerText += ` [Выполнено]`;
+        } else if (taskDate.getTime() < now.getTime()) {
+            headerText += ` [Просрочено]`;
+        } else if (
+            now.getFullYear() === taskDate.getFullYear() &&
+            now.getMonth() === taskDate.getMonth() &&
+            now.getDate() === taskDate.getDate()
+        ) {
+            headerText += ` [Сегодня до ${taskDate.toLocaleTimeString()}]`;
+        } else {
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const overmorrow = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 1);
+            if (
+                tomorrow.getFullYear() === taskDate.getFullYear() &&
+                tomorrow.getMonth() === taskDate.getMonth() &&
+                tomorrow.getDate() === taskDate.getDate()
+            ) {
+                headerText += ` [Завтра]`;
+            } else if (
+                overmorrow.getFullYear() === taskDate.getFullYear() &&
+                overmorrow.getMonth() === taskDate.getMonth() &&
+                overmorrow.getDate() === taskDate.getDate()
+            ) {
+                headerText += ` [Послезавтра]`;
+            } else {
+                const timeDiff = taskDate.getTime() - now.getTime();
+                const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+                headerText += ` [Через ${dayDiff} дней]`;
+            }
         }
-        headerText += ` [До ${taskDate.toLocaleString()}]`;
 
         header.textContent = headerText;
 

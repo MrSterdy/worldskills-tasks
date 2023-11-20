@@ -1,4 +1,125 @@
-import {updateTask, getAllTasks, removeTask, searchTasks} from "./taskService.js";
+/**
+ * @typedef {{
+ *     name: string,
+ *     finished: boolean
+ * }} Subtask
+ */
+
+/**
+ * @typedef {{
+ *     name: string,
+ *     subtasks: Subtask[],
+ *     date: string,
+ *     finished: boolean
+ * }} Task
+ */
+
+class TaskService {
+    /**
+     * @param {string} input
+     */
+    #isTask(input) {
+        return input.startsWith("task:");
+    }
+
+    /**
+     * @param {string} taskName
+     */
+    #addPrefix(taskName) {
+        return "task:" + taskName;
+    }
+
+    /**
+     * @param {string} taskName
+     */
+    #removePrefix(taskName) {
+        return taskName.slice("task:".length);
+    }
+
+    /**
+     * @param {Task} task
+     */
+    updateTask(task) {
+        localStorage.setItem(this.#addPrefix(task.name), JSON.stringify(task));
+    }
+
+    /**
+     * @param {string} taskName
+     */
+    removeTask(taskName) {
+        localStorage.removeItem(this.#addPrefix(taskName));
+    }
+
+    /**
+     * @param {string} taskName
+     *
+     * @return {Task | null}
+     */
+    getTask(taskName) {
+        const item = localStorage.getItem(this.#addPrefix(taskName));
+
+        return item ? JSON.parse(item) : null;
+    }
+
+    /**
+     * @return {Task[]}
+     */
+    getAllTasks() {
+        return Object
+            .keys(localStorage)
+            .filter(this.#isTask)
+            .map(name => this.getTask(this.#removePrefix(name)))
+            .sort((a, b) => {
+                // Нормализовать до [-1; 1]
+                const date = Math.min(Math.max(new Date(b.date).getTime() - new Date(a.date).getTime(), -1), 1);
+
+                // Отсортировать так, что незавершенные были сверху, а завершенные снизу
+                return (a.finished || -1) + date - (b.finished || -1);
+            })
+    }
+
+    /**
+     * @param {string} input
+     *
+     * @return {Task[]}
+     */
+    searchTasks(input) {
+        const tasks = this.getAllTasks();
+        const search = tasks
+            .map(task =>
+                [
+                    task.name.split(" "),
+                    task.subtasks.map(subtask => subtask.name.split(" ")),
+                    task.date.split("T")
+                ].flat(2));
+
+        /** @type Task[] */
+        const result = [];
+
+        const inputWords = input.trim().split(" ");
+
+        search.forEach((sentence, i) => {
+            let matches = 0;
+            for (const word of sentence) {
+                for (const inputWord of inputWords) {
+                    if (word.toLowerCase().includes(inputWord.toLowerCase())) {
+                        matches++;
+                    }
+                }
+            }
+
+            if (matches < inputWords.length) {
+                return;
+            }
+
+            result.push(tasks[i]);
+        });
+
+        return result;
+    }
+}
+
+const taskService = new TaskService();
 
 /** @type HTMLInputElement */
 const newNameInput = document.getElementById("new-task-input");
@@ -28,7 +149,7 @@ function refreshTasks(search = undefined) {
     const taskList = document.getElementById("tasks");
     taskList.replaceChildren();
 
-    const tasks = search ? searchTasks(search) : getAllTasks();
+    const tasks = search ? taskService.searchTasks(search) : taskService.getAllTasks();
 
     for (const task of tasks) {
         const li = document.createElement("li");
@@ -145,9 +266,9 @@ function refreshTasks(search = undefined) {
                 refreshEditSubtasks();
             });
 
-            deleteBtn.textContent = "Удалить подзадачу";
+            deleteBtn.textContent = "Удалить задачу";
             deleteBtn.addEventListener("click", () => {
-                removeTask(task.name);
+                taskService.removeTask(task.name);
                 refreshTasks();
             });
 
@@ -165,8 +286,8 @@ function refreshTasks(search = undefined) {
                 if (!nameInput.value || (task.finished && editSubtasks.some(subtask => !subtask.finished))) {
                     return;
                 }
-                removeTask(task.name);
-                updateTask({ name: nameInput.value, date: dateInput.value, subtasks: editSubtasks, finished: task.finished });
+                taskService.removeTask(task.name);
+                taskService.updateTask({ name: nameInput.value, date: dateInput.value, subtasks: editSubtasks, finished: task.finished });
                 refreshTasks();
             });
 
@@ -206,7 +327,7 @@ function refreshSubtasks() {
         input.required = true;
         input.addEventListener("input", () => subtask.name = input.value);
 
-        deleteBtn.textContent = "Удалить";
+        deleteBtn.textContent = "Удалить подзадачу";
         deleteBtn.addEventListener("click", () => {
             subtasks.splice(subtaskI, 1);
             refreshSubtasks();
@@ -231,7 +352,7 @@ document.getElementById("new-task-submit").addEventListener("click", () => {
         return;
     }
 
-    updateTask({ name: newNameInput.value, subtasks, date: newDateInput.value, finished: false });
+    taskService.updateTask({ name: newNameInput.value, subtasks, date: newDateInput.value, finished: false });
 
     refreshSubtasks();
     refreshTasks();

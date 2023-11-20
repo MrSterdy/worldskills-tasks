@@ -268,8 +268,13 @@ function refreshTasks(search = undefined) {
 
             deleteBtn.textContent = "Удалить задачу";
             deleteBtn.addEventListener("click", () => {
-                taskService.removeTask(task.name);
-                refreshTasks();
+                document.getElementById("confirm").onclick = () => {
+                    document.getElementById("confirm-delete").close();
+                    taskService.removeTask(task.name);
+                    refreshTasks();
+                };
+
+                document.getElementById("confirm-delete").show();
             });
 
             finishBtn.textContent = task.finished ? "Пометить задачу незавершенной" : "Пометить задачу завершенной";

@@ -167,6 +167,31 @@ button {
     outline: none;
 }
 
+dialog:not([open]) {
+    display: none !important;
+}
+
+#confirm-delete {
+    all: unset;
+    position: fixed;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+#confirm-delete form {
+    margin: 1rem auto 0;
+    width: 90%;
+    background-color: #FFFFFF;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
 @media (min-width: 900px) {
     main {
         padding-left: 6rem;
